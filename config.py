@@ -36,7 +36,7 @@ TOKEN = os.getenv("TOKEN")
 API_ID = os.getenv("API_ID")
 API_HASH = os.getenv("API_HASH")
 
-DEBUG = True
+DEBUG = False
 SERVER_URL = os.getenv("SERVER_URL")
 
 DATABASE_STRING = os.getenv("DATABASE_STRING")
