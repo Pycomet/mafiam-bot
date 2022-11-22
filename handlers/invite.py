@@ -107,8 +107,12 @@ def get_invite_code(msg):
 
             bot.send_photo(
                 msg.from_user.id,
-                photo="https://ibb.co/pfHDP4v",
-                caption=get_string(
+                photo="https://iili.io/yzZn6J.md.jpg",
+            )
+
+            bot.send_message(
+                msg.from_user.id,
+                text=get_string(
                     f"Dear 🤡  {user.nickname}, \n🎊 Thank you for your introduction 🎉✨ \
                         \n======================== \
                         \nYour refferal code has been entered for {user.nickname} \

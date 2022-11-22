@@ -2,12 +2,18 @@ from config import *
 from utils import *
 from models import Account
 
+gender_options = ["male", "female", "transgender", "No answer"]
+
 
 def gender_menu():
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     a = types.InlineKeyboardButton(text="🚹  Male", callback_data="male")
     b = types.InlineKeyboardButton(text="🚺 Female", callback_data="female")
-    keyboard.add(a, b)
+    c = types.InlineKeyboardButton(
+        text="⚧️ Transgender", callback_data="transgender")
+    d = types.InlineKeyboardButton(
+        text="🚫 I do not like to answer that", callback_data="No answer")
+    keyboard.add(a, b, c, d)
     return keyboard
 
 
@@ -110,9 +116,9 @@ def get_name(msg):
     if isNew:
         bot.send_photo(
             msg.from_user.id,
-            photo="https://ibb.co/mXBzyt8",
-            caption=get_string(
-                "Pick your gender from the options below 👇", LANGUAGE),
+            photo="https://iili.io/ycPwdX.md.png",
+            caption=get_string("🤡 Choose your gender \
+                \n\n *Can be changed later.", LANGUAGE),
             reply_markup=gender_menu(),
         )
 
@@ -152,6 +158,16 @@ def get_type(msg):
     )
 
     bot.register_next_step_handler(question, get_secret_question)
+
+# GET PASSCODE 1
+
+# GET PASSCODE 2
+
+# GET PASSCODE 3
+
+# GET PASSCODE 4
+
+# GET PASSCODE TEST
 
 
 def get_secret_question(msg):
@@ -226,12 +242,11 @@ def get_secret_answer(msg):
         logging.error("An error occured update the secret answer")
 
 
+# CHECK USER'S QUESTION
+
+
 # Callback Handlers
-@bot.callback_query_handler(func=lambda c: c.data in [
-    "male", "female", "continue", "quit",
-    "個人のお客様", "メーカー様", "卸業者様", "不定期小売店",
-    "特殊案件", "個人メーカー", "経営者", "紹介業者"
-])
+@bot.callback_query_handler(func=lambda c: c.data in [*gender_options, *type_options])
 def register_callback_answer(call):
     """
     Button Response
@@ -239,7 +254,7 @@ def register_callback_answer(call):
 
     bot.send_chat_action(call.from_user.id, "typing")
     # ADDING THE GENDER
-    if call.data == "male" or call.data == "female":
+    if call.data in gender_options:
         # Delete prev question
         bot.delete_message(call.from_user.id, call.message.message_id)
 
@@ -289,8 +304,7 @@ def register_callback_answer(call):
             call.from_user.id,
             photo="https://iili.io/ycPOes.md.png",
             caption=get_string("🤡 Choose a nickname for your store. \
-                \n\n *Can be changed later. \
-                \n *Press back to return to the previous question.", LANGUAGE),
+                \n\n *Can be changed later.", LANGUAGE),
         )
 
         bot.register_next_step_handler(question, get_name)
