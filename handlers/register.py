@@ -29,6 +29,39 @@ def type_menu():
     return keyboard
 
 
+pass1_options = [f"pass1-{n}" for n in range(0, 10)]
+pass2_options = [f"pass2-{n}" for n in range(0, 10)]
+pass3_options = [f"pass3-{n}" for n in range(0, 10)]
+pass4_options = [f"pass4-{n}" for n in range(0, 10)]
+
+
+def pass_menu(options):
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    buttons = [types.InlineKeyboardButton(text=get_string(
+        each, LANGUAGE), callback_data=each) for each in options]
+    [keyboard.add(button) for button in buttons]
+    return keyboard
+
+
+validation_options = ["Yes", "No"]
+
+
+def validation_menu():
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    buttons = [types.InlineKeyboardButton(text=get_string(
+        each, LANGUAGE), callback_data=each) for each in validation_options]
+    [keyboard.add(button) for button in buttons]
+    return keyboard
+
+
+def pass_validation_menu():
+    keyboard = types.InlineKeyboardMarkup(row_width=3)
+    buttons = [types.InlineKeyboardButton(text=get_string(
+        each, LANGUAGE), callback_data=f"pass-{each}") for each in validation_options]
+    [keyboard.add(button) for button in buttons]
+    return keyboard
+
+
 def register_menu():
     keyboard = types.InlineKeyboardMarkup(row_width=2)
     a = types.InlineKeyboardButton(
@@ -130,46 +163,6 @@ def get_name(msg):
         )
 
 
-def get_type(msg):
-    "Adds Account Type And Request Secret Question"
-    account_type = msg.text
-    chat, m_id = get_received_msg(msg)
-
-    # Delete prev question
-    bot.delete_message(chat.id, m_id - 1)
-
-    status = db_client.update_account(
-        msg.from_user.id, {"accountType": account_type}
-    )
-    print(f"Account status - {True}")
-
-    bot.delete_message(chat.id, m_id)
-
-    bot.send_chat_action(msg.from_user.id, "typing")
-
-    question = bot.send_photo(
-        msg.from_user.id,
-        photo="https://ibb.co/mXBzyt8",
-        caption=get_string(
-            f"Enter your own custom secret question here👇 \n<b>(📌 write in a safe place)</b>\n<b>(📌 This question remains exclusive to you alone)</b>",
-            LANGUAGE,
-        ),
-        parse_mode="html",
-    )
-
-    bot.register_next_step_handler(question, get_secret_question)
-
-# GET PASSCODE 1
-
-# GET PASSCODE 2
-
-# GET PASSCODE 3
-
-# GET PASSCODE 4
-
-# GET PASSCODE TEST
-
-
 def get_secret_question(msg):
     "Ask Secret Question"
     secret_question = msg.text
@@ -189,9 +182,11 @@ def get_secret_question(msg):
     if status == True:
         question = bot.send_photo(
             msg.from_user.id,
-            photo="https://ibb.co/mXBzyt8",
-            caption=get_string(
-                f"Enter the answer to your secret question👇 ", LANGUAGE),
+            photo="https://iili.io/ycPemG.md.png",
+            caption=get_string("🤡 Submit your <b>{secret_question}</b> answer. \
+                \n=======================",
+                               LANGUAGE,
+                               ),
         )
 
         bot.register_next_step_handler(question, get_secret_answer)
@@ -224,19 +219,22 @@ def get_secret_answer(msg):
 
         bot.send_photo(
             msg.from_user.id,
-            photo="https://ibb.co/nm9NTpZ",
+            photo="https://iili.io/ycPvIf.md.png",
             caption=get_string(
-                f"🎉<b>Welcome to MAFIAM CLUB {user.nickname},🎉 \n\nClick /start to get started exploring...</b>",
+                f"🤡  Is this correct? \
+                    \n======================= \
+                    \n\nNickname - {user.nickname} \
+                    \n\nSex - {user.sex} \
+                    \n\nKinds - {user.account_type} \
+                    \n\nPIN code - {user.code} \
+                    \n\nSecret question and anser - {user.secret_question} {user.secret_answer} \
+                    \n=======================",
                 LANGUAGE,
             ),
+            parse_mode=validation_menu(),
             parse_mode="html",
         )
 
-        bot.send_photo(
-            msg.from_user.id,
-            photo="https://ibb.co/J3Q7Q8k",
-            allow_sending_without_reply=True,
-        )
     else:
         print("An error occured update the secret answer")
         logging.error("An error occured update the secret answer")
@@ -246,7 +244,7 @@ def get_secret_answer(msg):
 
 
 # Callback Handlers
-@bot.callback_query_handler(func=lambda c: c.data in [*gender_options, *type_options])
+@bot.callback_query_handler(func=lambda c: c.data in [*gender_options, *type_options, *pass1_options, *pass2_options, *pass3_options, *pass4_options, *validation_options, "pass-Yes", "pass-No"])
 def register_callback_answer(call):
     """
     Button Response
@@ -284,17 +282,162 @@ def register_callback_answer(call):
         status = db_client.update_account(
             call.from_user.id, {"accountType": call.data})
 
-        question = bot.send_photo(
+        bot.send_photo(
             call.from_user.id,
-            photo="https://iili.io/yEYeiN.md.png",
-            caption=get_string(
-                f"Enter your own custom secret question here👇 \n<b>(📌 write in a safe place)</b>\n<b>(📌 This question remains exclusive to you alone)</b>",
-                LANGUAGE,
-            ),
+            photo="https://iili.io/ycPhgt.md.png",
+            caption=get_string("🤡 Set a 4-digit PASSWORD \
+                \n======================= \
+                \n\n⬜ ⬜ ⬜ ⬜",
+                               LANGUAGE,
+                               ),
+            reply_markup=pass_menu(pass1_options),
             parse_mode="html",
         )
 
-        bot.register_next_step_handler(question, get_secret_question)
+    elif call.data in pass1_options:
+
+        # Delete prev question
+        bot.delete_message(call.from_user.id, call.message.message_id)
+        code = call.data.split("-")[1]
+
+        status = db_client.update_account(
+            call.from_user.id, {"code": code})
+
+        bot.send_photo(
+            call.from_user.id,
+            photo="https://iili.io/ycPhgt.md.png",
+            caption=get_string("🤡 Set a 4-digit PASSWORD \
+                \n======================= \
+                \n\n🔳 ⬜ ⬜ ⬜",
+                               LANGUAGE,
+                               ),
+            reply_markup=pass_menu(pass2_options),
+            parse_mode="html",
+        )
+
+    elif call.data in pass2_options:
+
+        # Delete prev question
+        bot.delete_message(call.from_user.id, call.message.message_id)
+        code = call.data.split("-")[1]
+
+        user, uid = db_client.get_account(call.from_user.id)
+
+        status = db_client.update_account(
+            call.from_user.id, {"code": user["code"] + code})
+
+        bot.send_photo(
+            call.from_user.id,
+            photo="https://iili.io/ycPhgt.md.png",
+            caption=get_string("🤡 Set a 4-digit PASSWORD \
+                \n======================= \
+                \n\n🔳 🔳 ⬜ ⬜",
+                               LANGUAGE,
+                               ),
+            reply_markup=pass_menu(pass3_options),
+            parse_mode="html",
+        )
+
+    elif call.data in pass3_options:
+
+        # Delete prev question
+        bot.delete_message(call.from_user.id, call.message.message_id)
+        code = call.data.split("-")[1]
+
+        user, uid = db_client.get_account(call.from_user.id)
+
+        status = db_client.update_account(
+            call.from_user.id, {"code": user["code"] + code})
+
+        bot.send_photo(
+            call.from_user.id,
+            photo="https://iili.io/ycPhgt.md.png",
+            caption=get_string("🤡 Set a 4-digit PASSWORD \
+                \n======================= \
+                \n\n🔳 🔳 🔳 ⬜",
+                               LANGUAGE,
+                               ),
+            reply_markup=pass_menu(pass4_options),
+            parse_mode="html",
+        )
+
+    elif call.data in pass4_options:
+
+        # Delete prev question
+        bot.delete_message(call.from_user.id, call.message.message_id)
+        code = call.data.split("-")[1]
+
+        user, uid = db_client.get_account(call.from_user.id)
+
+        status = db_client.update_account(
+            call.from_user.id, {"code": user["code"] + code})
+
+        updated_user, uid = db_client.get_account(call.from_user.id)
+
+        bot.send_photo(
+            call.from_user.id,
+            photo="https://iili.io/ycPhgt.md.png",
+            caption=get_string(f"🤡 Confirm with <b>{updated_user['code']}</b> \
+                \n======================= \
+                \n\n🔳 🔳 🔳 🔳",
+                               LANGUAGE,
+                               ),
+            reply_markup=pass_validation_menu(),
+            parse_mode="html",
+        )
+
+    elif call.data in ["pass-Yes", "pass-No"]:
+
+        if call.data == "pass-Yes":
+            # Delete prev question
+            bot.delete_message(call.from_user.id, call.message.message_id)
+
+            question = bot.send_photo(
+                call.from_user.id,
+                photo="https://iili.io/yEYeiN.md.png",
+                caption=get_string(f"🤡 Confirm with <b>{updated_user['code']}</b> \
+                \n======================= \
+                \n\nExample; \
+                \n-What was your nickname in elementary school?\
+                \n=What are yout parents' maiden names?",
+                                   LANGUAGE,
+                                   ),
+                parse_mode="html",
+            )
+
+            bot.register_next_step_handler(question, get_secret_question)
+
+        else:
+            # Delete prev question
+            bot.delete_message(call.from_user.id, call.message.message_id)
+
+    elif call.date in validation_options:
+
+        if call.data == "No":
+            # Delete prev question
+            bot.delete_message(call.from_user.id, call.message.message_id)
+
+            bot.send_photo(
+                call.from_user.id,
+                photo="https://iili.io/yzkatV.md.jpg",
+                caption=get_string(f"🤡 Confirm a fix ?",
+                                   LANGUAGE,
+                                   ),
+                parse_mode="html",
+            )
+
+        else:
+            bot.send_photo(
+                call.from_user.id,
+                photo="https://iili.io/H9TWXAF.md.jpg",
+                caption=get_string(f"🤡 Your registration has been completed. Please log in at <b>The Uncut Diamonds</b>.",
+                                   LANGUAGE,
+                                   ),
+                parse_mode="html",
+            )
+
+            # Delete prev question
+            bot.delete_message(call.from_user.id, call.message.message_id)
 
     elif call.data == "continue":
 
